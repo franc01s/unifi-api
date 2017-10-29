@@ -1,70 +1,15 @@
-# This project is not actively maintained
-
-Issues and pull requests on this repository may not be acted on in a timely
-manner, or at all.  You are of course welcome to use it anyway. You are even
-more welcome to fork it and maintain the results.
-
-![Unmaintained](https://nym.se/img/unmaintained.jpg)
-
 unifi-api
 =========
 
 ---
 
-A rewrite of https://github.com/unifi-hackers/unifi-lab in cleaner Python.
+A rewrite of https://github.com/calmh/unifi-api, support for 4+ unifi versions.  
+Usage of requests to simplify api calls 
 
 Install
 -------
 
-    sudo pip install -U unifi
-
-Utilities
----------
-
-The following small utilities are bundled with the API:
-
-### unifi-ls-clients
-
-Lists the currently active clients on the networks. Takes parameters for
-controller, username, password, controller version and site ID (UniFi >= 3.x)
-
-```
-jb@unifi:~ % unifi-ls-clients -c localhost -u admin -p p4ssw0rd -v v3 -s default
-NAME                             MAC  AP            CHAN  RSSI   RX   TX
-client-kitchen     00:24:36:9a:0d:ab  Study          100    51  300  216
-jborg-mbp          28:cf:da:d6:46:20  Study          100    45  300  300
-jb-iphone          48:60:bc:44:36:a4  Living Room      1    45   65   65
-jb-ipad            1c:ab:a7:af:05:65  Living Room      1    22   52   65
-```
-
-### unifi-low-snr-reconnect
-
-Periodically checks all clients for low SNR values, and disconnects those who
-fall below the limit. The point being that these clients will then try to
-reassociate, hopefully finding a closer AP. Take the same parameters as above,
-plus settings for intervals and SNR threshold. Use `unifi-low-snr-reconnect -h`
-for an option summary.
-
-A good source of understanding for RSSI/SNR values is [this
-article](http://www.wireless-nets.com/resources/tutorials/define_SNR_values.html).
-According to that, an SNR of 15 dB seems like a good cutoff, and that's also
-the default value in the script. You can set a higher value for testing:
-
-```
-jb@unifi:~ % unifi-low-snr-reconnect -c localhost -u admin -p p4ssw0rd -v v3 -s default --minsnr 30
-2012-11-15 11:23:01 INFO unifi-low-snr-reconnect: Disconnecting jb-ipad/1c:ab:a7:af:05:65@Study (SNR 22 dB < 30 dB)
-2012-11-15 11:23:01 INFO unifi-low-snr-reconnect: Disconnecting Annas-Iphone/74:e2:f5:97:da:7e@Living Room (SNR 29 dB < 30 dB)
-```
-
-For production use, launching the script into the background is recommended...
-
-### unifi-save-statistics
-
-Get a csv file with statistics
-
-```
-unifi-save-statistics -c localhost -u admin -p p4ssw0rd -v v3 -s default -f filename.csv
-```
+    sudo pip install -U unifiapi
 
 API Example
 -----------
@@ -75,41 +20,6 @@ c = Controller('192.168.1.99', 'admin', 'p4ssw0rd')
 for ap in c.get_aps():
 	print 'AP named %s with MAC %s' % (ap.get('name'), ap['mac'])
 ```
-
-See also the scripts `unifi-ls-clients` and `unifi-low-rssi-reconnect` for more
-examples of how to use the API.
-
-UniFi v3 Compatibility and Migration
-------------------------------------
-With the release of v3, UniFi gained multisite support which requires some
-changes on how to interract with the API . Currently we assume v2 to be the
-default, thus: Updating the API WON'T BREAK existing code using this API.
-
-Though, for continued v2 usage we **recommend** you start explicitely
-instanciating your controller in v2 mode for the day the default assumption
-starts to be v3 or newer:
-
-```python
-c = Controller('192.168.1.99', 'admin', 'p4ssw0rd', 'v2')
-```
-
-With UniFi v3, connecting to the first (`default`) site, is as easy as
-instanciating a controller in v3 mode:
-
-```python
-c = Controller('192.168.1.99', 'admin', 'p4ssw0rd', 'v3')
-```
-
-Connecting to a site other than `default` requires indication of both version
-and the site ID:
-
-```python
-c = Controller('192.168.1.99', 'admin', 'p4ssw0rd', 'v3', 'myothersite')
-```
-
-You can find about the site ID by selecting the site in the UniFi web interface,
-i.e. "My other site". Then you can find ia its URL (`https://localhost:8443/manage/s/foobar`)
-that the site ID is `myothersite`.
 
 API
 ---
@@ -140,12 +50,32 @@ Add a client to the block list.
 
  - `mac` -- the MAC address of the client to block.
 
-### `disconnect_client(self, mac)`
+### `kick_client(self, mac)`
 
 Disconnects a client, forcing them to reassociate. Useful when the
 connection is of bad quality to force a rescan.
 
  - `mac` -- the MAC address of the client to disconnect.
+
+### `authorize_guest(self, guest_mac, minutes, up_bandwidth=None, down_bandwidth=None, byte_quota=None, ap_mac=None)`
+
+Authorize a guest based on his MAC address.
+
+   - `guest_mac`     -- the guest MAC address : aa:bb:cc:dd:ee:ff
+   - `minutes`      -- duration of the authorization in minutes
+   - `up_bandwith`  -- up speed allowed in kbps (optional)
+   - `down_bandwith` -- down speed allowed in kbps (optional)
+   - `byte_quota`    -- quantity of bytes allowed in MB (optional)
+   - `ap_mac`        -- access point MAC address (UniFi >= 3.x) (optional)
+
+### `unauthorize_guest(self, guest_mac)`
+Unauthorize a guest based on his MAC address.
+
+  - `guest_mac` -- the guest MAC address : aa:bb:cc:dd:ee:ff
+
+
+# TO DO
+
 
 ### `get_alerts(self)`
 
@@ -224,21 +154,6 @@ Tells the controller to create a backup archive and downloads it to a file. It s
 
  - `targetfile` -- the target file name, you can also use a full path. Default creates unifi-backup.unf in the current directoy.
 
-### `authorize_guest(self, guest_mac, minutes, up_bandwidth=None, down_bandwidth=None, byte_quota=None, ap_mac=None)`
-
-Authorize a guest based on his MAC address.
-
-   - `guest_mac`     -- the guest MAC address : aa:bb:cc:dd:ee:ff
-   - `minutes`      -- duration of the authorization in minutes
-   - `up_bandwith`  -- up speed allowed in kbps (optional)
-   - `down_bandwith` -- down speed allowed in kbps (optional)
-   - `byte_quota`    -- quantity of bytes allowed in MB (optional)
-   - `ap_mac`        -- access point MAC address (UniFi >= 3.x) (optional)
-
-### `unauthorize_guest(self, guest_mac)`
-Unauthorize a guest based on his MAC address.
-
-  - `guest_mac` -- the guest MAC address : aa:bb:cc:dd:ee:ff
 
 License
 -------
