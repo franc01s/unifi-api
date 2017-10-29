@@ -170,4 +170,3 @@ class Controller:
         json = {'cmd': 'unblock-sta', 'mac': mac}
 
         return self._post(self.api_url + 'cmd/stamgr', json)
-

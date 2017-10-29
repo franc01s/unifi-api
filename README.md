@@ -33,7 +33,7 @@ controller. Operations will raise unifi.controller.APIError on obvious
 problems (such as login failure), but many errors (such as disconnecting a
 nonexistant client) will go unreported.
 
-### `__init__(self, host, username, password)`
+### `__init__(self, host, username, password, site_id, verify)`
 
 Create a Controller object.
 
@@ -41,8 +41,8 @@ Create a Controller object.
  - `username`	-- the username to log in with
  - `password`	-- the password to log in with
  -  `port`		-- the port of the controller host
- -  `version`	-- the base version of the controller API [v2|v3]
- -  `site_id`	-- the site ID to connect to (UniFi >= 3.x)
+ -  `site_id`	-- the site ID to connect to
+ -  `verify`	-- check SSL certificate
 
 ### `block_client(self, mac)`
 
