@@ -112,7 +112,7 @@ class Controller:
         optional parameter <ap_mac>  = AP MAC address to which client is connected, should result in faster authorization
         """
 
-        log.debug('authorize_guest() {mac} for {minutes} minutes',format(mac=mac, minutes=minutes))
+        log.debug('authorize_guest() {mac} for {minutes} minutes'.format(mac=mac, minutes=minutes))
         json = {'cmd': 'authorize-guest', 'mac': mac, 'minutes': minutes}
         if up_bandwidth:
             json['up'] = up_bandwidth
@@ -132,7 +132,7 @@ class Controller:
 
         """
 
-        log.debug('unauthorize_guest() {mac}',format(mac))
+        log.debug('unauthorize_guest() {mac}'.format(mac=mac))
         json = {'cmd': 'unauthorize-guest', 'mac': mac}
 
         return self._post(self.api_url + 'cmd/stamgr', json)
@@ -144,7 +144,7 @@ class Controller:
 
         """
 
-        log.debug('kick_sta() {mac}',format(mac))
+        log.debug('kick_sta() {mac}'.format(mac=mac))
         json = {'cmd': 'kick-sta', 'mac': mac}
 
         return self._post(self.api_url + 'cmd/stamgr', json)
@@ -155,7 +155,7 @@ class Controller:
         required parameter <mac>     = client MAC address
         """
 
-        log.debug('block_sta() {mac}',format(mac))
+        log.debug('block_sta() {mac}'.format(mac=mac))
         json = {'cmd': 'block-sta', 'mac': mac}
 
         return self._post(self.api_url + 'cmd/stamgr', json)
@@ -166,7 +166,7 @@ class Controller:
         required parameter <mac>     = client MAC address
         """
 
-        log.debug('unblock_sta() {mac}',format(mac))
+        log.debug('unblock_sta() {mac}'.format(mac=mac))
         json = {'cmd': 'unblock-sta', 'mac': mac}
 
         return self._post(self.api_url + 'cmd/stamgr', json)
